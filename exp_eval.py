@@ -13,51 +13,62 @@ def postfix_eval(input_str):
     Raises a PostfixFormatException if the input is not well-formed"""
     stack = Stack(30)
     tokens = input_str.split(" ")
-#    num_val = 0
-#    num_op = 0
+    if len(tokens) == 0:
+        raise PostfixFormatException("Insufficient operands")
+    num_val = 0
+    num_op = 0
     for token in tokens:
         if is_value(token):
+            token = int(token)
             stack.push(token)
-#            num_val += 1
+            num_val += 1
         elif is_operator(token):
-#            num_op += 1
+            if stack.size() < 2:
+                raise PostfixFormatException("Insufficient operands")
+            num_op += 1
             a = stack.pop()
             b = stack.pop()
             result = perform_operation(token, b, a)
             stack.push(result)
-        '''
-        else:
-            if (num_val-1) > num_op:
-                raise PostFixFormatException("Too many operands")
-            elif (num_val-1) < num_op:
-                raise PostFixFormatException("Insufficiant operands")'''
+    if (num_val == 0) or (num_op == 0):
+        raise PostfixFormatException("Invalid token")
+    elif (num_val-1) > num_op:
+        raise PostfixFormatException("Too many operands")
     return stack.pop()
 
 def is_value(token):
+    """Determines if a token can be an integer"""
     try:
-        float(token)
+        int(token)
         return True
     except ValueError:
         return False
 
 def is_operator(token):
-    return token in ['+','-','*','/','**']
+    """Determines if a token is an operator"""
+    return token in ['+','-','*','/','**', '>>', '<<']
 
 def perform_operation(operator, a, b):
-    a_num = float(a)
-    b_num = float(b)
+    """Preforms operations"""
     if operator == "+":
-        return a_num + b_num
+        return a + b
     elif operator == "-":
-        return a_num - b_num
+        return a - b
     elif operator == "*":
-        return a_num * b_num
+        return a * b
     elif operator == "/":
-        return a_num / b_num
+        if b != 0:
+            return a / b
+        else:
+            raise ValueError
     elif operator == "**":
-        return a_num ** b_num
+        return a ** b
+    elif operator == ">>":
+        return a >> b
+    elif operator == "<<":
+        return a << b
     else:
-        raise ValueError
+        raise PostfixFormatException("Invalid token")
 
 def infix_to_postfix(input_str):
     """Converts an infix expression to an equivalent postfix expression"""
@@ -65,14 +76,64 @@ def infix_to_postfix(input_str):
     """Input argument:  a string containing an infix expression where tokens are 
     space separated.  Tokens are either operators + - * / ^ parentheses ( ) or numbers
     Returns a String containing a postfix expression """
-    pass
+    stack = Stack(30)
+    tokens = input_str.split(" ")
+    RPN = ""
+    for token in tokens:
+        if is_value(token):
+            if RPN == "":
+                RPN = token
+            else:
+                RPN = RPN + " " + token
+        elif token == "(":
+            stack.push(token)
+        elif token == ")":
+            while stack.peek()!= "(":
+                RPN = RPN + " " + stack.pop()
+            stack.pop()
+        elif is_operator(token):
+            while (stack.is_empty() == False) and is_operator(stack.peek()) and has_precedence(token, stack.peek()):
+                RPN = RPN + " " + stack.pop()
+            stack.push(token)
+    while stack.size() > 0:
+        RPN = RPN + " " + str(stack.pop())
+    return RPN
+    
+def has_precedence(token1, token2):
+    """"""
+    # o1 is left-associative and its precedence is less than or equal to that of o2, 
+    # o1 is right-associative, and has precedence less than that of o2
+    if (precedence(token1) <= precedence(token2) and token1 != "**") or (token1 == "**" and precedence(token1) < precedence(token2)):
+        return True
+    return False
 
+def precedence(token):
+    """Finds the precedence of each operator in order to compare"""
+    if token == ">>" or token == "<<":
+        return 4
+    if token == "**":
+        return 3
+    if token == "*" or token == "/":
+        return 2
+    if token == "+" or token == "-":
+        return 1
 
 def prefix_to_postfix(input_str):
     """Converts a prefix expression to an equivalent postfix expression"""
     """Input argument: a string containing a prefix expression where tokens are 
     space separated.  Tokens are either operators + - * / ^ parentheses ( ) or numbers
     Returns a String containing a postfix expression(tokens are space separated)"""
-    pass
-
-
+    stack = Stack(30)
+    tokens = input_str.split(" ")
+    tokens.reverse()
+    if tokens == "":
+        return tokens
+    for token in tokens:
+        if is_value(token):
+            stack.push(token)
+        if is_operator(token) and (stack.size() > 1):
+            a = stack.pop()
+            b = stack.pop()
+            c = a + " " + b + " " + token
+            stack.push(c)
+    return stack.pop()
