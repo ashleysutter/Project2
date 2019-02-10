@@ -13,15 +13,23 @@ def postfix_eval(input_str):
     Raises a PostfixFormatException if the input is not well-formed"""
     stack = Stack(30)
     tokens = input_str.split(" ")
-    if len(tokens) == 0:
-        raise PostfixFormatException("Insufficient operands")
+    if input_str == "":
+        raise PostfixFormatException("Invalid token")
     num_val = 0
     num_op = 0
     for token in tokens:
-        if is_value(token):
+        if is_int(token):
             token = int(token)
             stack.push(token)
             num_val += 1
+            if len(tokens) == 1:
+                return int(token)
+        elif is_float(token):
+            token = float(token)
+            stack.push(token)
+            num_val += 1
+            if len(tokens) == 1:
+                return float(token)
         elif is_operator(token):
             if stack.size() < 2:
                 raise PostfixFormatException("Insufficient operands")
@@ -32,17 +40,31 @@ def postfix_eval(input_str):
             stack.push(result)
     if (num_val == 0) or (num_op == 0):
         raise PostfixFormatException("Invalid token")
-    elif (num_val-1) > num_op:
+    elif stack.size() == len(tokens) and (num_val-1) > num_op:
         raise PostfixFormatException("Too many operands")
     return stack.pop()
 
 def is_value(token):
     """Determines if a token can be an integer"""
+    return isinstance(token, (int, float))
+#    try:
+#        int(token)
+#        return True
+#    except ValueError:
+#        return False
+def is_float(token):
     try:
-        int(token)
-        return True
+        num = float(token)
     except ValueError:
         return False
+    return True
+
+def is_int(token):
+     try:
+        num = int(token)
+     except ValueError:
+        return False
+     return True
 
 def is_operator(token):
     """Determines if a token is an operator"""
@@ -64,11 +86,15 @@ def perform_operation(operator, a, b):
     elif operator == "**":
         return a ** b
     elif operator == ">>":
-        return a >> b
+        if isinstance(a, float) or isinstance(b, float):
+            raise PostfixFormatException("Illegal bit shift operand")
+        else:
+            return a >> b
     elif operator == "<<":
-        return a << b
-    else:
-        raise PostfixFormatException("Invalid token")
+        if isinstance(a, float) or isinstance(b, float):
+            raise PostfixFormatException("Illegal bit shift operand")
+        else:
+            return a << b
 
 def infix_to_postfix(input_str):
     """Converts an infix expression to an equivalent postfix expression"""
@@ -80,7 +106,7 @@ def infix_to_postfix(input_str):
     tokens = input_str.split(" ")
     RPN = ""
     for token in tokens:
-        if is_value(token):
+        if is_int(token) or is_float(token):
             if RPN == "":
                 RPN = token
             else:
@@ -126,10 +152,10 @@ def prefix_to_postfix(input_str):
     stack = Stack(30)
     tokens = input_str.split(" ")
     tokens.reverse()
-    if tokens == "":
-        return tokens
+    if input_str == "":
+        return ""
     for token in tokens:
-        if is_value(token):
+        if is_int(token) or is_float(token):
             stack.push(token)
         if is_operator(token) and (stack.size() > 1):
             a = stack.pop()
