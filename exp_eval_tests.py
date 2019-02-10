@@ -24,8 +24,13 @@ class test_expressions(unittest.TestCase):
         self.assertEqual(infix_to_postfix("3 + 4 * 2 / ( 1 - 5 ) ** 2 ** 3"), "3 4 2 * 1 5 - 2 3 ** ** / +")
         self.assertEqual(prefix_to_postfix("+ 1 2"), "1 2 +")
         self.assertEqual(prefix_to_postfix("* - 3 / 2 1 - / 4 5 6 "), "3 2 1 / - 4 5 / 6 - *")
-
-
+        self.assertEqual(postfix_eval("1.2"), 1.2)
+        
+    def test_postfix_eval_00(self):
+        try:
+            postfix_eval('1.1 4 >>')
+        except PostfixFormatException as e:
+            self.assertEqual(str(e), "Illegal bit shift operand")
 
     def test_postfix_eval_01(self):
         self.assertAlmostEqual(postfix_eval("3 5 +"), 8)
@@ -135,7 +140,7 @@ class test_expressions(unittest.TestCase):
         try:
             postfix_eval("99 38 1.2 * 3.6 2.8 / + 6 - 3.7 2 / 5 / + 3 - 23 + 1.1 / 2.2 + 2.4 5 / - 1 - 1.6 3 / 9 / 2.8 * 3 - 6.2 4 / 12.8 2 * 1.1 / 4.4 3.2 1.1 5.2 / 9.9 * - / - + - +")
         except PostfixFormatException as e:
-            self.assertEqual(str(e), "Insufficient operands")
+            self.assertEqual(str(e), "Too many operands")
 
     def test_13_infix_to_postfix_complex(self):
         self.assertEqual("3 2 + 8 3 / 17 * + 12 4.2 / 1.2 / 8 6 * - 6.9 17 * 23 6 / + 2.2 - 3.2 - 56 21 / 1.4 * - 2.3 4.1 * + * -", infix_to_postfix("( 3 + 2 ) + 8 / 3 * 17 - ( 12 / 4.2 / 1.2 - 8 * 6 ) * ( ( 6.9 * 17 + 23 / 6 - 2.2 ) - 3.2 - ( 56 / 21 * 1.4 ) + 2.3 * 4.1 )"))

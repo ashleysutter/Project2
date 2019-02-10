@@ -40,18 +40,10 @@ def postfix_eval(input_str):
             stack.push(result)
     if (num_val == 0) or (num_op == 0):
         raise PostfixFormatException("Invalid token")
-    elif stack.size() == len(tokens) and (num_val-1) > num_op:
+    elif (num_val+num_op) == len(tokens) and (num_val-1) > num_op:
         raise PostfixFormatException("Too many operands")
     return stack.pop()
 
-def is_value(token):
-    """Determines if a token can be an integer"""
-    return isinstance(token, (int, float))
-#    try:
-#        int(token)
-#        return True
-#    except ValueError:
-#        return False
 def is_float(token):
     try:
         num = float(token)
